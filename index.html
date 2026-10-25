@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Solar System</title>
+    <!-- Tailwind CSS for modern glassmorphism UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js and OrbitControls Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000005;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: #ffffff;
+            user-select: none;
+        }
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        /* Custom scrollbar for control panel */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        /* Glassmorphism styling */
+        .glass-panel {
+            background: rgba(10, 15, 30, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="w-full h-full overflow-hidden">
+
+    <!-- 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay Layer -->
+    <div class="relative z-10 pointer-events-none w-full h-full flex flex-col justify-between p-4 md:p-6">
+        
+        <!-- Top Bar: Title & Status -->
+        <div class="flex justify-between items-start w-full">
+            <div class="glass-panel p-4 rounded-2xl pointer-events-auto flex items-center space-x-3">
+                <div class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-amber-400 via-orange-300 to-rose-400">SOLAR SYSTEM 3D</h1>
+                    <p class="text-xs text-slate-400">Interactive Photorealistic Sun Simulation</p>
+                </div>
+            </div>
+
+            <!-- Quick Action Toggle Controls -->
+            <div class="glass-panel p-2 rounded-2xl pointer-events-auto flex items-center space-x-2">
+                <button id="btn-pause" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition text-xs font-semibold flex items-center space-x-1">
+                    <span id="pause-icon">⏸️</span>
+                    <span id="pause-text">Pause</span>
+                </button>
+                <button id="btn-orbits" class="px-3 py-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition text-xs font-semibold">
+                    Toggle Orbits
+                </button>
+            </div>
+        </div>
+
+        <!-- Bottom Layout Grid: Controls & Info Card -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full items-end">
+            
+            <!-- Left Panel: Navigation & Speed -->
+            <div class="glass-panel p-5 rounded-2xl pointer-events-auto custom-scrollbar max-h-[40vh] md:max-h-none overflow-y-auto space-y-4">
+                <h2 class="text-xs font-bold uppercase tracking-widest text-amber-400 border-b border-white/10 pb-2">Celestial Focus</h2>
+                
+                <!-- Target Selector Dropdown -->
+            <div>
+                <label class="block text-xs text-slate-300 mb-1">Focus Target</label>
+                <select id="select-focus" class="w-full bg-slate-900/80 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400">
+                    <option value="Sun">Sun (Center)</option>
+                    <option value="Mercury">Mercury</option>
+                    <option value="Venus">Venus</option>
+                    <optgroup label="Earth System">
+                        <option value="Earth">Earth</option>
+                        <option value="Moon">├── Moon</option>
+                    </optgroup>
+                    <optgroup label="Mars System">
+                        <option value="Mars">Mars</option>
+                        <option value="Phobos">├── Phobos</option>
+                        <option value="Deimos">└── Deimos</option>
+                    </optgroup>
+                    <optgroup label="Asteroid Belts">
+                        <option value="MainBelt">Main Asteroid Belt</option>
+                    </optgroup>
+                    <optgroup label="Dwarf Planets (Inner)">
+                        <option value="Ceres">Ceres</option>
+                    </optgroup>
+                    <optgroup label="Jupiter System">
+                        <option value="Jupiter">Jupiter</option>
+                        <option value="Io">├── Io</option>
+                        <option value="Europa">├── Europa</option>
+                        <option value="Ganymede">├── Ganymede</option>
+                        <option value="Callisto">└── Callisto</option>
+                    </optgroup>
+                    <optgroup label="Saturn System">
+                        <option value="Saturn">Saturn</option>
+                        <option value="Mimas">├── Mimas</option>
+                        <option value="Enceladus">├── Enceladus</option>
+                        <option value="Tethys">├── Tethys</option>
+                        <option value="Dione">├── Dione</option>
+                        <option value="Rhea">├── Rhea</option>
+                        <option value="Titan">├── Titan</option>
+                        <option value="Iapetus">└── Iapetus</option>
+                    </optgroup>
+                    <optgroup label="Uranus System">
+                        <option value="Uranus">Uranus</option>
+                        <option value="Miranda">├── Miranda</option>
+                        <option value="Ariel">├── Ariel</option>
+                        <option value="Umbriel">├── Umbriel</option>
+                        <option value="Titania">├── Titania</option>
+                        <option value="Oberon">└── Oberon</option>
+                    </optgroup>
+                    <optgroup label="Neptune System">
+                        <option value="Neptune">Neptune</option>
+                        <option value="Triton">├── Triton</option>
+                        <option value="Proteus">└── Proteus</option>
+                    </optgroup>
+                    <optgroup label="Outer Belts">
+                        <option value="KuiperBelt">Kuiper Belt</option>
+                    </optgroup>
+                    <optgroup label="Dwarf Planets (Trans-Neptunian)">
+                        <option value="Pluto">Pluto</option>
+                        <option value="Charon">├── Charon</option>
+                        <option value="Haumea">Haumea</option>
+                        <option value="Makemake">Makemake</option>
+                        <option value="Eris">Eris</option>
+                    </optgroup>
+                </select>
+            </div>
+
+                <!-- Simulation Speed Control -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs text-slate-300">Simulation Speed</label>
+                        <span id="speed-val" class="text-xs font-mono text-amber-400">1.0x</span>
+                    </div>
+                    <input type="range" id="slider-speed" min="0" max="10" step="0.1" value="1" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-amber-400">
+                </div>
+            </div>
+
+            <!-- Middle Empty Spacer for 3D View clarity -->
+            <div class="hidden md:block"></div>
+
+            <!-- Right Panel: Focus Body Info Card -->
+            <div id="info-card" class="glass-panel p-5 rounded-2xl pointer-events-auto space-y-3 transition-all duration-300">
+                <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                    <h2 id="info-name" class="text-xl font-extrabold text-amber-300">Sun</h2>
+                    <span id="info-type" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">G2V Main-Sequence Star</span>
+                </div>
+                <p id="info-desc" class="text-xs text-slate-300 leading-relaxed">
+                    The central star of our Solar System. Powered by nuclear fusion in its core, it generates turbulent solar wind, flares, dynamic magnetic field arches, and intense solar radiation.
+                </p>
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-white/5 text-xs">
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase">Surface Temp</span>
+                        <span id="info-radius" class="font-mono text-slate-200">5,778 K (5,505 °C)</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase">Core Temp</span>
+                        <span id="info-speed" class="font-mono text-slate-200">~15.7 Million K</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase">Mass Proportion</span>
+                        <span id="info-distance" class="font-mono text-slate-200">99.86% of System</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block text-[10px] uppercase">Equatorial Rotation</span>
+                        <span id="info-period" class="font-mono text-slate-200">~25 Days</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN THREE.JS SIMULATION SCRIPT -->
+    <script>
+        // --- 1. DATA DEFINITIONS FOR CELESTIAL BODIES ---
+        const PLANET_DATA = {
+            Sun: {
+                name: "Sun",
+                type: "G2V Main-Sequence Star",
+                radius: 12.0,
+                distance: 0,
+                speed: 0,
+                rotationSpeed: 0.002,
+                color: 0xffd700,
+                tilt: 0.12,
+                info: {
+                    radius: "5,778 K (5,505 °C)",
+                    speed: "~15.7 Million K",
+                    distance: "99.86% of System",
+                    period: "~25 Days",
+                    desc: "The central star of our Solar System. Powered by nuclear fusion in its core, it generates turbulent solar wind, yellow-hot plasma, dark magnetic sunspots, and intense solar radiation."
+                }
+            },
+            MainBelt: {
+                name: "Main Asteroid Belt",
+                type: "Circumstellar Disc",
+                radius: 0.1,
+                distance: 68,
+                speed: 0.0005,
+                rotationSpeed: 0,
+                info: {
+                    radius: "Inner: 2.2 AU / Outer: 3.2 AU",
+                    speed: "~17.9 km/s avg",
+                    distance: "2.2 – 3.2 AU",
+                    period: "3 – 6 Years",
+                    desc: "A torus-shaped region located between the orbits of Mars and Jupiter. It is occupied by millions of rocky comets, asteroids, and planetesimals leftover from early solar system formation."
+                }
+            },
+            KuiperBelt: {
+                name: "Kuiper Belt",
+                type: "Trans-Neptunian Disc",
+                radius: 0.1,
+                distance: 215,
+                speed: 0.0002,
+                rotationSpeed: 0,
+                info: {
+                    radius: "Inner: 30 AU / Outer: 50 AU",
+                    speed: "~4.5 km/s avg",
+                    distance: "30 – 50 AU",
+                    period: "200 – 300+ Years",
+                    desc: "A vast ring of icy bodies beyond Neptune's orbit. Home to dwarf planets like Pluto, Haumea, and Makemake, as well as thousands of short-period comets."
+                }
+            },
+            Mercury: {
+                name: "Mercury",
+                type: "Terrestrial Planet",
+                radius: 1.0,
+                distance: 22,
+                speed: 0.04,
+                rotationSpeed: 0.005,
+                color: 0xa9a9a9,
+                tilt: 0.03,
+                info: {
+                    radius: "2,439 km",
+                    speed: "47.4 km/s",
+                    distance: "0.39 AU",
+                    period: "88 Days",
+                    desc: "The smallest planet in our solar system and closest to the Sun. It experiences extreme temperature swings."
+                }
+            },
+            Venus: {
+                name: "Venus",
+                type: "Terrestrial Planet",
+                radius: 1.8,
+                distance: 32,
+                speed: 0.025,
+                rotationSpeed: -0.002, // Retrograde
+                color: 0xe3bb76,
+                tilt: 3.1,
+                info: {
+                    radius: "6,051 km",
+                    speed: "35.0 km/s",
+                    distance: "0.72 AU",
+                    period: "225 Days",
+                    desc: "Spinning in the opposite direction to most planets, Venus has a thick, toxic carbon dioxide atmosphere causing runaway greenhouse heating."
+                }
+            },
+            Earth: {
+                name: "Earth",
+                type: "Terrestrial Planet",
+                radius: 2.0,
+                distance: 44,
+                speed: 0.018,
+                rotationSpeed: 0.02,
+                color: 0x2233ff,
+                tilt: 0.41,
+                hasAtmosphere: true,
+                isEarth: true,
+                moons: {
+                    Moon: { name: "Moon", radius: 0.5, distance: 4.0, speed: 0.05, color: 0xcccccc, info: { radius: "1,737 km", speed: "1.02 km/s", distance: "384,400 km", period: "27.3 Days", desc: "Earth's only natural satellite. Its gravitational pull creates ocean tides and stabilizes Earth's axial tilt." } }
+                },
+                info: {
+                    radius: "6,371 km",
+                    speed: "29.8 km/s",
+                    distance: "1.00 AU",
+                    period: "365.25 Days",
+                    desc: "Our home world. It is the only known planet in the universe to shelter living organisms, with vast liquid oceans, green continents, and dynamic white clouds."
+                }
+            },
+            Mars: {
+                name: "Mars",
+                type: "Terrestrial Planet",
+                radius: 1.3,
+                distance: 58,
+                speed: 0.014,
+                rotationSpeed: 0.018,
+                color: 0xc1440e,
+                tilt: 0.44,
+                moons: {
+                    Phobos: { name: "Phobos", radius: 0.25, distance: 2.5, speed: 0.09, color: 0x8a7a70, info: { radius: "11.2 km", speed: "2.14 km/s", distance: "9,376 km", period: "7h 39m", desc: "The larger, innermost moon of Mars. It orbits so close to Mars that it will eventually be torn apart into a ring." } },
+                    Deimos: { name: "Deimos", radius: 0.2, distance: 3.8, speed: 0.06, color: 0x998877, info: { radius: "6.2 km", speed: "1.35 km/s", distance: "23,463 km", period: "30.3 Hours", desc: "The smaller, outer moon of Mars. Lumpy and heavily cratered, likely an asteroid captured by Mars' gravity." } }
+                },
+                info: {
+                    radius: "3,389 km",
+                    speed: "24.1 km/s",
+                    distance: "1.52 AU",
+                    period: "687 Days",
+                    desc: "The 'Red Planet' gets its color from iron oxide rust on its surface. It features ancient volcanoes and canyon systems."
+                }
+            },
+            Ceres: {
+                name: "Ceres",
+                type: "Dwarf Planet (Asteroid Belt)",
+                radius: 0.6,
+                distance: 72,
+                speed: 0.011,
+                rotationSpeed: 0.02,
+                color: 0x8c887b,
+                tilt: 0.07,
+                info: {
+                    radius: "473 km",
+                    speed: "17.9 km/s",
+                    distance: "2.77 AU",
+                    period: "4.60 Years",
+                    desc: "The largest object in the main asteroid belt between Mars and Jupiter. Ceres contains significant amounts of water ice under its cratered rocky surface."
+                }
+            },
+            Jupiter: {
+                name: "Jupiter",
+                type: "Gas Giant",
+                radius: 5.2,
+                distance: 85,
+                speed: 0.008,
+                rotationSpeed: 0.04,
+                color: 0xd8ca9d,
+                tilt: 0.05,
+                isStriped: true,
+                moons: {
+                    Io: { name: "Io", radius: 0.45, distance: 7.5, speed: 0.07, color: 0xddcc33, info: { radius: "1,821 km", speed: "17.3 km/s", distance: "421,700 km", period: "1.77 Days", desc: "The most volcanically active body in the Solar System, with hundreds of volcanoes erupting plasma and sulfur." } },
+                    Europa: { name: "Europa", radius: 0.4, distance: 9.5, speed: 0.05, color: 0xcccccc, info: { radius: "1,560 km", speed: "13.7 km/s", distance: "670,900 km", period: "3.55 Days", desc: "Has a smooth, icy crust covering a global saltwater ocean that may harbor life." } },
+                    Ganymede: { name: "Ganymede", radius: 0.6, distance: 12.0, speed: 0.035, color: 0x998877, info: { radius: "2,634 km", speed: "10.8 km/s", distance: "1,070,400 km", period: "7.15 Days", desc: "The largest moon in the Solar System—bigger than Mercury—and the only moon known to possess its own magnetic field." } },
+                    Callisto: { name: "Callisto", radius: 0.55, distance: 15.0, speed: 0.025, color: 0x665544, info: { radius: "2,410 km", speed: "8.2 km/s", distance: "1,882,700 km", period: "16.7 Days", desc: "Heavily cratered, ancient icy surface with little geological activity, acting as a historical record of cosmic impacts." } }
+                },
+                info: {
+                    radius: "69,911 km",
+                    speed: "13.1 km/s",
+                    distance: "5.20 AU",
+                    period: "11.86 Years",
+                    desc: "More than twice as massive as all other planets combined. Iconic for its Great Red Spot, a giant storm larger than Earth."
+                }
+            },
+            Saturn: {
+                name: "Saturn",
+                type: "Gas Giant",
+                radius: 4.2,
+                distance: 115,
+                speed: 0.006,
+                rotationSpeed: 0.038,
+                color: 0xead6b8,
+                tilt: 0.47,
+                hasRings: true,
+                moons: {
+                    Mimas: { name: "Mimas", radius: 0.22, distance: 6.2, speed: 0.08, color: 0xaaaaaa, info: { radius: "198 km", speed: "14.3 km/s", distance: "185,520 km", period: "22.6 Hours", desc: "Famous for its giant Herschel crater, giving it a striking resemblance to the 'Death Star'." } },
+                    Enceladus: { name: "Enceladus", radius: 0.28, distance: 7.2, speed: 0.065, color: 0xeeeeff, info: { radius: "252 km", speed: "12.6 km/s", distance: "238,020 km", period: "1.37 Days", desc: "Shoots massive geysers of water ice and organic compounds from its subsurface ocean into space." } },
+                    Tethys: { name: "Tethys", radius: 0.32, distance: 8.3, speed: 0.055, color: 0xcccccc, info: { radius: "531 km", speed: "11.3 km/s", distance: "294,660 km", period: "1.88 Days", desc: "An icy moon dominated by Odysseus Crater and the giant canyon system Ithaca Chasma." } },
+                    Dione: { name: "Dione", radius: 0.35, distance: 9.5, speed: 0.045, color: 0xbbbbbb, info: { radius: "561 km", speed: "10.0 km/s", distance: "377,400 km", period: "2.73 Days", desc: "Features bright icy cliffs created by tectonic fractures on its trailing hemisphere." } },
+                    Rhea: { name: "Rhea", radius: 0.4, distance: 11.0, speed: 0.035, color: 0xaaaaaa, info: { radius: "764 km", speed: "8.5 km/s", distance: "527,040 km", period: "4.52 Days", desc: "Saturn's second-largest moon, composed heavily of water ice with a thin atmosphere of oxygen and CO2." } },
+                    Titan: { name: "Titan", radius: 0.65, distance: 13.5, speed: 0.025, color: 0xe0a050, info: { radius: "2,574 km", speed: "5.57 km/s", distance: "1,221,870 km", period: "15.9 Days", desc: "The second-largest moon in the solar system, with a dense nitrogen atmosphere and liquid methane/ethane lakes." } },
+                    Iapetus: { name: "Iapetus", radius: 0.38, distance: 16.5, speed: 0.015, color: 0x776655, info: { radius: "734 km", speed: "3.26 km/s", distance: "3,561,300 km", period: "79.3 Days", desc: "Unique two-tone color moon with one pitch-black hemisphere and one bright snowy hemisphere." } }
+                },
+                info: {
+                    radius: "58,232 km",
+                    speed: "9.7 km/s",
+                    distance: "9.58 AU",
+                    period: "29.45 Years",
+                    desc: "Adorned with a dazzling, complex system of icy rings made of billions of individual chunks of ice and rock."
+                }
+            },
+            Uranus: {
+                name: "Uranus",
+                type: "Ice Giant",
+                radius: 3.1,
+                distance: 145,
+                speed: 0.004,
+                rotationSpeed: -0.025,
+                color: 0x73c7c7,
+                tilt: 1.70, // Extreme tilt
+                hasRings: true,
+                ringColor: 0x5588aa,
+                moons: {
+                    Miranda: { name: "Miranda", radius: 0.25, distance: 4.8, speed: 0.07, color: 0x999999, info: { radius: "235 km", speed: "6.6 km/s", distance: "129,900 km", period: "1.41 Days", desc: "Features chaotic, patchy geology including Verona Rupes, the tallest known cliff in the Solar System." } },
+                    Ariel: { name: "Ariel", radius: 0.3, distance: 6.0, speed: 0.055, color: 0xbbbbbb, info: { radius: "579 km", speed: "5.5 km/s", distance: "191,000 km", period: "2.52 Days", desc: "The brightest and youngest-looking surface among Uranus's moons, with extensive fault canyons." } },
+                    Umbriel: { name: "Umbriel", radius: 0.3, distance: 7.2, speed: 0.045, color: 0x555555, info: { radius: "584 km", speed: "4.7 km/s", distance: "266,000 km", period: "4.14 Days", desc: "The darkest major moon of Uranus, heavily cratered with a mysterious bright ring at Wunda crater." } },
+                    Titania: { name: "Titania", radius: 0.42, distance: 8.8, speed: 0.035, color: 0xaaaaaa, info: { radius: "788 km", speed: "3.6 km/s", distance: "436,000 km", period: "8.71 Days", desc: "The largest moon of Uranus, carved by massive fault valleys and giant impact basins." } },
+                    Oberon: { name: "Oberon", radius: 0.4, distance: 10.5, speed: 0.025, color: 0x887766, info: { radius: "761 km", speed: "3.1 km/s", distance: "583,500 km", period: "13.5 Days", desc: "The outermost major moon of Uranus, heavily cratered with dark material floor deposits." } }
+                },
+                info: {
+                    radius: "25,362 km",
+                    speed: "6.8 km/s",
+                    distance: "19.22 AU",
+                    period: "84 Years",
+                    desc: "An ice giant that rotates nearly on its side, likely due to a colossal collision early in its formation."
+                }
+            },
+            Neptune: {
+                name: "Neptune",
+                type: "Ice Giant",
+                radius: 3.0,
+                distance: 172,
+                speed: 0.003,
+                rotationSpeed: 0.023,
+                color: 0x274687,
+                tilt: 0.49,
+                moons: {
+                    Proteus: { name: "Proteus", radius: 0.28, distance: 4.8, speed: 0.06, color: 0x777777, info: { radius: "210 km", speed: "7.6 km/s", distance: "117,600 km", period: "26.9 Hours", desc: "A dark, non-spherical boxy moon covered in heavy impact craters." } },
+                    Triton: { name: "Triton", radius: 0.48, distance: 7.5, speed: -0.04, color: 0x99bbcc, info: { radius: "1,353 km", speed: "4.39 km/s", distance: "354,800 km", period: "5.88 Days", desc: "Orbits Neptune backwards (retrograde). Features nitrogen geysers and a active cantaloupe-terrain surface." } }
+                },
+                info: {
+                    radius: "24,622 km",
+                    speed: "5.4 km/s",
+                    distance: "30.05 AU",
+                    period: "164.8 Years",
+                    desc: "Dark, cold, and whipped by supersonic winds. Neptune is the most distant major planet in our solar system."
+                }
+            },
+            Pluto: {
+                name: "Pluto",
+                type: "Dwarf Planet (Kuiper Belt)",
+                radius: 0.8,
+                distance: 198,
+                speed: 0.0024,
+                rotationSpeed: -0.005,
+                color: 0xcdb198,
+                tilt: 2.05,
+                moons: {
+                    Charon: { name: "Charon", radius: 0.4, distance: 3.0, speed: 0.05, color: 0x998877, info: { radius: "606 km", speed: "0.21 km/s", distance: "19,591 km", period: "6.38 Days", desc: "Pluto's largest moon. Because Charon is nearly half the size of Pluto, they form a mutually tidally locked binary system." } }
+                },
+                info: {
+                    radius: "1,188 km",
+                    speed: "4.74 km/s",
+                    distance: "39.48 AU",
+                    period: "248 Years",
+                    desc: "A icy world featuring nitrogen ice glaciers, mountains of water ice, and a prominent heart-shaped glacier named Tombaugh Regio."
+                }
+            },
+            Haumea: {
+                name: "Haumea",
+                type: "Dwarf Planet (Kuiper Belt)",
+                radius: 0.7,
+                distance: 220,
+                speed: 0.002,
+                rotationSpeed: 0.08,
+                color: 0xc4cace,
+                tilt: 0.49,
+                info: {
+                    radius: "798 km",
+                    speed: "4.48 km/s",
+                    distance: "43.13 AU",
+                    period: "283 Years",
+                    desc: "Known for its highly elongated ellipsoid shape due to its remarkably rapid 4-hour rotation speed—one of the fastest in the solar system."
+                }
+            },
+            Makemake: {
+                name: "Makemake",
+                type: "Dwarf Planet (Kuiper Belt)",
+                radius: 0.75,
+                distance: 242,
+                speed: 0.0017,
+                rotationSpeed: 0.015,
+                color: 0xc27c59,
+                tilt: 0.50,
+                info: {
+                    radius: "715 km",
+                    speed: "4.41 km/s",
+                    distance: "45.43 AU",
+                    period: "306 Years",
+                    desc: "The second-brightest Kuiper belt object visible from Earth after Pluto. Its surface is covered with frozen methane, ethane, and nitrogen."
+                }
+            },
+            Eris: {
+                name: "Eris",
+                type: "Dwarf Planet (Scattered Disc)",
+                radius: 0.82,
+                distance: 270,
+                speed: 0.0013,
+                rotationSpeed: 0.01,
+                color: 0xe5e9ec,
+                tilt: 0.77,
+                info: {
+                    radius: "1,163 km",
+                    speed: "3.43 km/s",
+                    distance: "67.78 AU",
+                    period: "557 Years",
+                    desc: "One of the most massive dwarf planets in our solar system. The discovery of Eris in 2005 led directly to the IAU reclassification of Pluto as a dwarf planet."
+                }
+            }
+        };
+
+        // --- 2. SETUP SCENE, CAMERA, RENDERER & CONTROLS ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x000005, 0.0003);
+
+        const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.5, 3500);
+        camera.position.set(0, 180, 320);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.3;
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxDistance = 1500;
+        controls.minDistance = 5;
+
+        // Simulation Control Variables
+        let isPaused = false;
+        let simSpeed = 1.0;
+        let showOrbits = true;
+        let focusedObjectName = 'Sun';
+        const celestialObjects = {};
+        const orbitLines = [];
+
+        // --- 3. ADVANCED REALISTIC SUN SHADER ---
+        // Helper function for Sun Corona glow layers
+        function createCoronaLayer(scaleFactor, colorHex, opacityVal, powExp) {
+            const coronaGeo = new THREE.SphereGeometry(1, 64, 64);
+            const coronaMat = new THREE.ShaderMaterial({
+                uniforms: {
+                    c: { value: 0.2 },
+                    p: { value: powExp },
+                    glowColor: { value: new THREE.Color(colorHex) },
+                    viewVector: { value: camera.position }
+                },
+                vertexShader: `
+                    uniform vec3 viewVector;
+                    uniform float c;
+                    uniform float p;
+                    varying float intensity;
+                    void main() {
+                        vec3 vNormal = normalize(normalMatrix * normal);
+                        vec3 vNormel = normalize(normalMatrix * viewVector);
+                        intensity = pow(c - dot(vNormal, vNormel), p);
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform vec3 glowColor;
+                    varying float intensity;
+                    void main() {
+                        gl_FragColor = vec4(glowColor, intensity);
+                    }
+                `,
+                side: THREE.BackSide,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                depthWrite: false
+            });
+
+            const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
+            coronaMesh.scale.setScalar(PLANET_DATA.Sun.radius * scaleFactor);
+            scene.add(coronaMesh);
+            return coronaMat;
+        }
+
+        // Procedural Solar Noise GLSL Shader with Sunspots & Yellow Palette
+        const SunShader = {
+            uniforms: {
+                time: { value: 0 },
+                color1: { value: new THREE.Color(0xffa500) }, // Deep golden yellow-orange
+                color2: { value: new THREE.Color(0xffe033) }, // Bright radiant yellow
+                color3: { value: new THREE.Color(0xffffff) }, // Hot core white-yellow
+                spotColor: { value: new THREE.Color(0x2a1805) } // Dark magnetic sunspots
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+                void main() {
+                    vUv = uv;
+                    vNormal = normalize(normalMatrix * normal);
+                    vPosition = position;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform float time;
+                uniform vec3 color1;
+                uniform vec3 color2;
+                uniform vec3 color3;
+                uniform vec3 spotColor;
+                varying vec2 vUv;
+                varying vec3 vNormal;
+                varying vec3 vPosition;
+
+                // Simplex 3D Noise Implementation
+                vec4 permute(vec4 x){ return mod(((x*34.0)+1.0)*x, 289.0); }
+                vec4 taylorInvSqrt(vec4 r){ return 1.79284291400159 - 0.85373472095314 * r; }
+
+                float snoise(vec3 v){
+                    const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+                    const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+
+                    vec3 i  = floor(v + dot(v, C.yyy) );
+                    vec3 x0 = v - i + dot(i, C.xxx) ;
+
+                    vec3 g = step(x0.yzx, x0.xyz);
+                    vec3 l = 1.0 - g;
+                    vec3 i1 = min( g.xyz, l.zxy );
+                    vec3 i2 = max( g.xyz, l.zxy );
+
+                    vec3 x1 = x0 - i1 + 1.0 * C.xxx;
+                    vec3 x2 = x0 - i2 + 2.0 * C.xxx;
+                    vec3 x3 = x0 - 1.0 + 3.0 * C.xxx;
+
+                    i = mod(i, 289.0 );
+                    vec4 p = permute( permute( permute(
+                                i.z + vec4(0.0, i1.z, i2.z, 1.0 ))
+                            + i.y + vec4(0.0, i1.y, i2.y, 1.0 ))
+                            + i.x + vec4(0.0, i1.x, i2.x, 1.0 ));
+
+                    float n_ = 0.142857142857;
+                    vec3  ns = n_ * D.wyz - D.xzx;
+
+                    vec4 j = p - 49.0 * floor(p * ns.z);
+
+                    vec4 x_ = floor(j * ns.z);
+                    vec4 y_ = floor(j - 7.0 * x_ );
+
+                    vec4 x = x_ *ns.x + ns.yyyy;
+                    vec4 y = y_ *ns.x + ns.yyyy;
+                    vec4 h = 1.0 - abs(x) - abs(y);
+
+                    vec4 b0 = vec4( x.xy, y.xy );
+                    vec4 b1 = vec4( x.zw, y.zw );
+
+                    vec4 s0 = floor(b0)*2.0 + 1.0;
+                    vec4 s1 = floor(b1)*2.0 + 1.0;
+                    vec4 sh = -step(h, vec4(0.0));
+
+                    vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy ;
+                    vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww ;
+
+                    vec3 p0 = vec3(a0.xy,h.x);
+                    vec3 p1 = vec3(a0.zw,h.y);
+                    vec3 p2 = vec3(a1.xy,h.z);
+                    vec3 p3 = vec3(a1.zw,h.w);
+
+                    vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+                    p0 *= norm.x;
+                    p1 *= norm.y;
+                    p2 *= norm.z;
+                    p3 *= norm.w;
+
+                    vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                    m = m * m;
+                    return 42.0 * dot( m*m, vec4( dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3) ) );
+                }
+
+                void main() {
+                    // Granular plasma turbulent noise
+                    vec3 pos = vPosition * 0.18;
+                    float n1 = snoise(pos + vec3(0.0, time * 0.12, 0.0));
+                    float n2 = snoise(pos * 2.5 - vec3(time * 0.15, 0.0, time * 0.1));
+                    float n3 = snoise(pos * 5.0 + vec3(0.0, 0.0, time * 0.2));
+
+                    float plasma = n1 * 0.5 + n2 * 0.35 + n3 * 0.15;
+                    plasma = clamp(plasma * 0.5 + 0.5, 0.0, 1.0);
+
+                    // Vibrant Yellow Plasma Color Blend
+                    vec3 finalColor = mix(color1, color2, smoothstep(0.15, 0.65, plasma));
+                    finalColor = mix(finalColor, color3, smoothstep(0.65, 0.95, plasma));
+
+                    // Sunspots calculation (low frequency noise defining magnetic dark spots)
+                    vec3 spotPos = vPosition * 0.08;
+                    float spotNoise = snoise(spotPos + vec3(time * 0.015, 0.0, time * 0.01));
+                    
+                    // Create clustered sunspots with penumbra rings
+                    float sunspotMask = smoothstep(0.52, 0.62, spotNoise);
+                    float penumbraMask = smoothstep(0.42, 0.62, spotNoise);
+
+                    // Blend sunspot dark umbra & penumbra onto yellow plasma
+                    finalColor = mix(finalColor, spotColor, penumbraMask * 0.7);
+                    finalColor = mix(finalColor, vec3(0.05, 0.02, 0.0), sunspotMask * 0.9);
+
+                    // Dynamic hot-spot flare bright highlights around spots
+                    float flare = pow(plasma, 4.0) * 1.2;
+                    finalColor += vec3(flare * 0.5, flare * 0.45, flare * 0.2);
+
+                    gl_FragColor = vec4(finalColor, 1.0);
+                }
+            `
+        };
+
+        // Jupiter Striped Band Texture
+        function createJupiterTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            const bands = [
+                '#c69c6d', '#e0d0b0', '#a16d3f', '#e6d8c3', '#8c4f27',
+                 '#d4b896', '#7a3e1d', '#c2b193', '#b86e36', '#d6c5a9'
+            ];
+
+            let y = 0;
+            while (y < canvas.height) {
+                const h = Math.random() * 40 + 10;
+                ctx.fillStyle = bands[Math.floor(Math.random() * bands.length)];
+                ctx.fillRect(0, y, canvas.width, h);
+                y += h;
+            }
+
+            // Great Red Spot
+            ctx.fillStyle = '#b33b14';
+            ctx.beginPath();
+            ctx.ellipse(canvas.width * 0.6, canvas.height * 0.7, 50, 30, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // Earth Surface procedural texture with green continents & oceans
+        function createEarthTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            // Deep ocean background
+            ctx.fillStyle = '#0f3875';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Simple landmass map generation with deep green and brown continents
+            ctx.fillStyle = '#2d6a37';
+            
+            // North America
+            ctx.beginPath();
+            ctx.ellipse(250, 150, 110, 70, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // South America
+            ctx.fillStyle = '#23592c';
+            ctx.beginPath();
+            ctx.ellipse(340, 330, 60, 100, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Eurasia / Africa
+            ctx.fillStyle = '#34783e';
+            ctx.beginPath();
+            ctx.ellipse(600, 180, 140, 80, 0.1, 0, Math.PI * 2);
+            ctx.ellipse(560, 290, 80, 90, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Australia
+            ctx.fillStyle = '#4e7332';
+            ctx.beginPath();
+            ctx.ellipse(820, 360, 50, 40, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Polar Ice Caps
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, 35);
+            ctx.fillRect(0, canvas.height - 35, canvas.width, 35);
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // Earth Clouds procedural texture
+        function createEarthCloudsTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+
+            // Generate soft cloud wisps
+            for (let i = 0; i < 90; i++) {
+                const x = Math.random() * canvas.width;
+                const y = Math.random() * (canvas.height - 100) + 50;
+                const rx = Math.random() * 80 + 20;
+                const ry = Math.random() * 20 + 5;
+
+                ctx.beginPath();
+                ctx.ellipse(x, y, rx, ry, Math.random() * Math.PI, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            return new THREE.CanvasTexture(canvas);
+        }
+
+        // Saturn Ring Procedural Texture
+        function createSaturnRingTexture() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 1;
+            const ctx = canvas.getContext('2d');
+
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            grad.addColorStop(0.0, 'rgba(0,0,0,0)');
+            grad.addColorStop(0.2, 'rgba(180,160,130,0.8)');
+            grad.addColorStop(0.5, 'rgba(210,190,160,0.9)');
+            grad.addColorStop(0.7, 'rgba(100,90,70,0.3)'); // Cassini Division
+            grad.addColorStop(0.85, 'rgba(190,170,140,0.7)');
+            grad.addColorStop(1.0, 'rgba(0,0,0,0)');
+
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, 1);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            return texture;
+        }
+
+        // --- 4. LIGHTING SYSTEM ---
+        // Ambient light tuned for strong day/night contrast on all planets
+        const ambientLight = new THREE.AmbientLight(0x0a0f1d, 0.25);
+        scene.add(ambientLight);
+
+        // Core Sun Point Light Source casting physical shadows
+        const sunLight = new THREE.PointLight(0xfffae0, 3.5, 1000, 0.15);
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 2048;
+        sunLight.shadow.mapSize.height = 2048;
+        sunLight.shadow.bias = -0.0001;
+        sunLight.shadow.radius = 2.5;
+        scene.add(sunLight);
+
+        // Fill light for soft shadow side visibility
+        const fillLight = new THREE.HemisphereLight(0x334466, 0x020205, 0.15);
+        scene.add(fillLight);
+
+        // --- 5. STARRY SKYBOX BACKGROUND ---
+        function createStarfield() {
+            const count = 7000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            for (let i = 0; i < count; i++) {
+                const r = 800 + Math.random() * 400;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+
+                positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = r * Math.cos(phi);
+
+                const c = new THREE.Color();
+                if (Math.random() > 0.8) c.setHSL(0.6, 0.6, 0.8);
+                else if (Math.random() > 0.6) c.setHSL(0.08, 0.8, 0.8);
+                else c.setHSL(0, 0, Math.random() * 0.5 + 0.5);
+
+                colors[i * 3] = c.r;
+                colors[i * 3 + 1] = c.g;
+                colors[i * 3 + 2] = c.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 1.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.85
+            });
+
+            const starField = new THREE.Points(geometry, material);
+            scene.add(starField);
+        }
+        createStarfield();
+
+        // --- 5.1 ASTEROID BELTS CREATION ---
+        function createAsteroidBelt(innerRadius, outerRadius, particleCount, pointSize, colorHex) {
+            const beltGroup = new THREE.Group();
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            const baseColor = new THREE.Color(colorHex);
+
+            for (let i = 0; i < particleCount; i++) {
+                const r = innerRadius + Math.random() * (outerRadius - innerRadius);
+                const theta = Math.random() * Math.PI * 2;
+                // Add vertical dispersion
+                const height = (Math.random() - 0.5) * (outerRadius - innerRadius) * 0.12;
+
+                positions[i * 3] = r * Math.cos(theta);
+                positions[i * 3 + 1] = height;
+                positions[i * 3 + 2] = r * Math.sin(theta);
+
+                // Slight color variation per particle
+                const variation = (Math.random() - 0.5) * 0.2;
+                const c = baseColor.clone().addScalar(variation);
+
+                colors[i * 3] = c.r;
+                colors[i * 3 + 1] = c.g;
+                colors[i * 3 + 2] = c.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: pointSize,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.75
+            });
+
+            const points = new THREE.Points(geometry, material);
+            beltGroup.add(points);
+            scene.add(beltGroup);
+
+            return beltGroup;
+        }
+
+        // Main Asteroid Belt (Between Mars at 58 and Jupiter at 85)
+        const mainAsteroidBelt = createAsteroidBelt(64, 76, 3500, 1.2, 0x998877);
+        celestialObjects['MainBelt'] = { mesh: mainAsteroidBelt, pivot: mainAsteroidBelt, data: PLANET_DATA.MainBelt, angle: 0 };
+
+        // Kuiper Belt (Beyond Neptune at 172)
+        const kuiperBelt = createAsteroidBelt(185, 250, 6000, 1.0, 0x88aacc);
+        celestialObjects['KuiperBelt'] = { mesh: kuiperBelt, pivot: kuiperBelt, data: PLANET_DATA.KuiperBelt, angle: 0 };
+
+        // --- 6. CELESTIAL BODY CREATION ---
+        const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
+
+        // CREATE REALISTIC SHADER SUN
+        const sunData = PLANET_DATA.Sun;
+        const sunMat = new THREE.ShaderMaterial({
+            uniforms: THREE.UniformsUtils.clone(SunShader.uniforms),
+            vertexShader: SunShader.vertexShader,
+            fragmentShader: SunShader.fragmentShader
+        });
+
+        const sunMesh = new THREE.Mesh(sphereGeo, sunMat);
+        sunMesh.scale.setScalar(sunData.radius);
+        scene.add(sunMesh);
+
+        // Multi-Layer Volumetric Sun Glow Corona
+        const coronaInnerMat = createCoronaLayer(1.15, 0xffd700, 0.85, 2.5);
+        const coronaOuterMat = createCoronaLayer(1.45, 0xffaa00, 0.45, 3.2);
+
+        // Solar Flare Prominence Ring
+        const flareRingGeo = new THREE.RingGeometry(sunData.radius * 1.02, sunData.radius * 1.3, 64);
+        const flareRingMat = new THREE.MeshBasicMaterial({
+            color: 0xffcc00,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.35,
+            blending: THREE.AdditiveBlending
+        });
+        const flareRing = new THREE.Mesh(flareRingGeo, flareRingMat);
+        flareRing.rotation.x = Math.PI / 3;
+        scene.add(flareRing);
+
+        celestialObjects['Sun'] = { mesh: sunMesh, data: sunData, angle: 0, mat: sunMat };
+
+        // Create Planets
+        Object.keys(PLANET_DATA).forEach((key) => {
+            if (key === 'Sun') return;
+
+            const data = PLANET_DATA[key];
+            let material;
+
+            if (key === 'Jupiter') {
+                material = new THREE.MeshStandardMaterial({
+                    map: createJupiterTexture(),
+                    roughness: 0.95,
+                    metalness: 0.05
+                });
+            } else if (key === 'Earth') {
+                material = new THREE.MeshStandardMaterial({
+                    map: createEarthTexture(),
+                    roughness: 0.6,
+                    metalness: 0.1
+                });
+            } else {
+                material = new THREE.MeshStandardMaterial({
+                    color: data.color,
+                    roughness: 0.9,
+                    metalness: 0.05
+                });
+            }
+
+            // Pivot Object for orbital revolution around Sun
+            const orbitPivot = new THREE.Group();
+            scene.add(orbitPivot);
+
+            // Container for axial tilt
+            const tiltGroup = new THREE.Group();
+            tiltGroup.rotation.z = data.tilt;
+            tiltGroup.position.x = data.distance;
+            orbitPivot.add(tiltGroup);
+
+            // Planet Mesh
+            const planetMesh = new THREE.Mesh(sphereGeo, material);
+            planetMesh.scale.setScalar(data.radius);
+            planetMesh.castShadow = true;
+            planetMesh.receiveShadow = true;
+            planetMesh.userData = { name: key };
+            tiltGroup.add(planetMesh);
+
+            // Earth Atmosphere & Rotating Cloud Layer
+            if (data.hasAtmosphere) {
+                const atmosMat = new THREE.MeshStandardMaterial({
+                    color: 0x0088ff,
+                    transparent: true,
+                    opacity: 0.2,
+                    blending: THREE.AdditiveBlending
+                });
+                const atmosMesh = new THREE.Mesh(sphereGeo, atmosMat);
+                atmosMesh.scale.setScalar(data.radius * 1.04);
+                tiltGroup.add(atmosMesh);
+
+                // Distinct cloud layer for Earth
+                if (data.isEarth) {
+                    const cloudMat = new THREE.MeshStandardMaterial({
+                        map: createEarthCloudsTexture(),
+                        transparent: true,
+                        opacity: 0.85,
+                        blending: THREE.NormalBlending
+                    });
+                    const cloudMesh = new THREE.Mesh(sphereGeo, cloudMat);
+                    cloudMesh.scale.setScalar(data.radius * 1.02);
+                    tiltGroup.add(cloudMesh);
+                    celestialObjects['EarthClouds'] = cloudMesh;
+                }
+            }
+
+            // Saturn / Uranus Ring Systems
+            if (data.hasRings) {
+                const innerR = data.radius * 1.4;
+                const outerR = data.radius * 2.5;
+                const ringGeo = new THREE.RingGeometry(innerR, outerR, 64);
+                
+                const pos = ringGeo.attributes.position;
+                const uv = ringGeo.attributes.uv;
+                for (let i = 0; i < pos.count; i++) {
+                    const vertex = new THREE.Vector3().fromBufferAttribute(pos, i);
+                    const length = vertex.length();
+                    const u = (length - innerR) / (outerR - innerR);
+                    uv.setXY(i, u, 0.5);
+                }
+
+                let ringMat;
+                if (key === 'Saturn') {
+                    ringMat = new THREE.MeshStandardMaterial({
+                        map: createSaturnRingTexture(),
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: 0.9,
+                        roughness: 0.5
+                    });
+                } else {
+                    ringMat = new THREE.MeshStandardMaterial({
+                        color: data.ringColor || 0x88aaaa,
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: 0.5
+                    });
+                }
+
+                const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+                ringMesh.rotation.x = Math.PI / 2;
+                ringMesh.receiveShadow = true;
+                ringMesh.castShadow = true;
+                tiltGroup.add(ringMesh);
+            }
+
+            // Visible Orbit Line
+            const orbitGeo = new THREE.BufferGeometry();
+            const points = [];
+            const segments = 128;
+            for (let i = 0; i <= segments; i++) {
+                const theta = (i / segments) * Math.PI * 2;
+                points.push(new THREE.Vector3(Math.cos(theta) * data.distance, 0, Math.sin(theta) * data.distance));
+            }
+            orbitGeo.setFromPoints(points);
+            const orbitMat = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.15
+            });
+            const orbitLine = new THREE.LineLoop(orbitGeo, orbitMat);
+            scene.add(orbitLine);
+            orbitLines.push(orbitLine);
+
+            celestialObjects[key] = {
+                mesh: planetMesh,
+                pivot: orbitPivot,
+                tiltGroup: tiltGroup,
+                data: data,
+                angle: Math.random() * Math.PI * 2
+            };
+
+            // CREATE MOONS FOR PLANET
+            if (data.moons) {
+                Object.keys(data.moons).forEach((moonKey) => {
+                    const moonData = data.moons[moonKey];
+                    moonData.type = `Moon of ${data.name}`;
+
+                    const moonMat = new THREE.MeshStandardMaterial({
+                        color: moonData.color,
+                        roughness: 0.9,
+                        metalness: 0.1
+                    });
+
+                    // Moon Orbit Group inside planet's tiltGroup
+                    const moonPivot = new THREE.Group();
+                    tiltGroup.add(moonPivot);
+
+                    const moonMesh = new THREE.Mesh(sphereGeo, moonMat);
+                    moonMesh.scale.setScalar(moonData.radius);
+                    moonMesh.position.x = moonData.distance;
+                    moonMesh.castShadow = true;
+                    moonMesh.receiveShadow = true;
+                    moonMesh.userData = { name: moonKey };
+                    moonPivot.add(moonMesh);
+
+                    // Moon Orbit Path Line
+                    const moonOrbitGeo = new THREE.BufferGeometry();
+                    const moonPoints = [];
+                    for (let i = 0; i <= 64; i++) {
+                        const theta = (i / 64) * Math.PI * 2;
+                        moonPoints.push(new THREE.Vector3(Math.cos(theta) * moonData.distance, 0, Math.sin(theta) * moonData.distance));
+                    }
+                    moonOrbitGeo.setFromPoints(moonPoints);
+                    const moonOrbitLine = new THREE.LineLoop(moonOrbitGeo, new THREE.LineBasicMaterial({
+                        color: 0xaaaaaa,
+                        transparent: true,
+                        opacity: 0.12
+                    }));
+                    moonPivot.add(moonOrbitLine);
+                    orbitLines.push(moonOrbitLine);
+
+                    celestialObjects[moonKey] = {
+                        mesh: moonMesh,
+                        pivot: moonPivot,
+                        data: moonData,
+                        angle: Math.random() * Math.PI * 2,
+                        isMoon: true
+                    };
+                });
+            }
+        });
+
+        // --- 9. UI CONTROL INTERACTION HANDLERS ---
+        const selectFocus = document.getElementById('select-focus');
+        const sliderSpeed = document.getElementById('slider-speed');
+        const speedVal = document.getElementById('speed-val');
+        const btnPause = document.getElementById('btn-pause');
+        const pauseIcon = document.getElementById('pause-icon');
+        const pauseText = document.getElementById('pause-text');
+        const btnOrbits = document.getElementById('btn-orbits');
+
+        selectFocus.addEventListener('change', (e) => {
+            setFocusedObject(e.target.value);
+        });
+
+        sliderSpeed.addEventListener('input', (e) => {
+            simSpeed = parseFloat(e.target.value);
+            speedVal.textContent = simSpeed.toFixed(1) + 'x';
+        });
+
+        btnPause.addEventListener('click', () => {
+            isPaused = !isPaused;
+            pauseIcon.textContent = isPaused ? '▶️' : '⏸️';
+            pauseText.textContent = isPaused ? 'Resume' : 'Pause';
+        });
+
+        btnOrbits.addEventListener('click', () => {
+            showOrbits = !showOrbits;
+            orbitLines.forEach(line => line.visible = showOrbits);
+            btnOrbits.classList.toggle('bg-amber-500/20', showOrbits);
+            btnOrbits.classList.toggle('bg-white/10', !showOrbits);
+        });
+
+        function setFocusedObject(name) {
+            focusedObjectName = name;
+            const data = PLANET_DATA[name];
+            if (!data) return;
+
+            document.getElementById('info-name').textContent = data.name;
+            document.getElementById('info-type').textContent = data.type;
+            document.getElementById('info-desc').textContent = data.info.desc;
+            document.getElementById('info-radius').textContent = data.info.radius;
+            document.getElementById('info-speed').textContent = data.info.speed;
+            document.getElementById('info-distance').textContent = data.info.distance;
+            document.getElementById('info-period').textContent = data.info.period;
+        }
+
+        // --- 10. ANIMATION & RENDER LOOP ---
+        const clock = new THREE.Clock();
+        const targetWorldPos = new THREE.Vector3();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+            const elapsedTime = clock.getElapsedTime();
+
+            // Animate Solar Surface Noise Shader
+            if (sunMat && sunMat.uniforms.time) {
+                sunMat.uniforms.time.value = elapsedTime * 0.5 * (isPaused ? 0.2 : simSpeed);
+            }
+
+            // Animate Solar Flare Ring
+            flareRing.rotation.z += 0.002 * (isPaused ? 0.2 : simSpeed);
+
+            if (!isPaused) {
+                // Rotate Sun
+                celestialObjects['Sun'].mesh.rotation.y += celestialObjects['Sun'].data.rotationSpeed * simSpeed;
+
+                // Rotate Asteroid Belts
+                if (mainAsteroidBelt) mainAsteroidBelt.rotation.y += 0.0003 * simSpeed;
+                if (kuiperBelt) kuiperBelt.rotation.y += 0.0001 * simSpeed;
+
+                // Animate Planets & Moons
+                Object.keys(celestialObjects).forEach((key) => {
+                    if (key === 'Sun' || key === 'EarthClouds' || key === 'MainBelt' || key === 'KuiperBelt') return;
+
+                    const obj = celestialObjects[key];
+                    
+                    // Orbit Revolution
+                    if (obj.isMoon) {
+                        obj.angle += obj.data.speed * 0.4 * simSpeed;
+                        obj.pivot.rotation.y = obj.angle;
+                        obj.mesh.rotation.y += 0.01 * simSpeed;
+                    } else {
+                        obj.angle += obj.data.speed * 0.2 * simSpeed;
+                        obj.pivot.rotation.y = obj.angle;
+                        obj.mesh.rotation.y += obj.data.rotationSpeed * simSpeed;
+                    }
+                });
+
+                // Rotate Earth clouds independently
+                if (celestialObjects['EarthClouds']) {
+                    celestialObjects['EarthClouds'].rotation.y += 0.024 * simSpeed;
+                }
+            }
+
+            // Smooth Camera Focus Tracking
+            const targetObj = celestialObjects[focusedObjectName];
+            if (targetObj) {
+                if (focusedObjectName === 'Sun') {
+                    targetWorldPos.set(0, 0, 0);
+                } else if (focusedObjectName === 'MainBelt' || focusedObjectName === 'KuiperBelt') {
+                    targetWorldPos.set(0, 0, 0);
+                } else {
+                    targetObj.mesh.getWorldPosition(targetWorldPos);
+                }
+
+                controls.target.lerp(targetWorldPos, 0.05);
+            }
+        function setFocusedObject(name) {
+            focusedObjectName = name;
+            let data = null;
+
+            // Find data in main planets or nested moon structures
+            if (PLANET_DATA[name]) {
+                data = PLANET_DATA[name];
+            } else {
+                Object.values(PLANET_DATA).forEach(planet => {
+                    if (planet.moons && planet.moons[name]) {
+                        data = planet.moons[name];
+                    }
+                });
+            }
+
+            if (!data) return;
+
+            document.getElementById('info-name').textContent = data.name;
+            document.getElementById('info-type').textContent = data.type || "Moon";
+            document.getElementById('info-desc').textContent = data.info.desc;
+            document.getElementById('info-radius').textContent = data.info.radius;
+            document.getElementById('info-speed').textContent = data.info.speed;
+            document.getElementById('info-distance').textContent = data.info.distance;
+            document.getElementById('info-period').textContent = data.info.period;
+        }
+            if (coronaOuterMat && coronaOuterMat.uniforms && coronaOuterMat.uniforms.viewVector) {
+                coronaOuterMat.uniforms.viewVector.value.copy(camera.position);
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // Window Resizing Listener
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize App
+        window.onload = function() {
+            animate();
+        };
+    </script>
+</body>
+</html>
