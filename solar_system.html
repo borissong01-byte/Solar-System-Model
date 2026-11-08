@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -89,53 +90,69 @@
                 <h2 class="text-xs font-bold uppercase tracking-widest text-amber-400 border-b border-white/10 pb-2">Celestial Focus</h2>
                 
                 <!-- Target Selector Dropdown -->
-                <div>
-                    <label class="block text-xs text-slate-300 mb-1">Focus Target</label>
-                    <select id="select-focus" class="w-full bg-slate-900/80 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400">
-                        <option value="Sun">Sun (Center)</option>
-                        <option value="Mercury">Mercury</option>
-                        <option value="Venus">Venus</option>
-                        <optgroup label="Earth System">
-                            <option value="Earth">Earth</option>
-                            <option value="Moon">├── Moon</option>
-                        </optgroup>
-                        <optgroup label="Mars System">
-                            <option value="Mars">Mars</option>
-                            <option value="Phobos">├── Phobos</option>
-                            <option value="Deimos">└── Deimos</option>
-                        </optgroup>
-                        <optgroup label="Jupiter System">
-                            <option value="Jupiter">Jupiter</option>
-                            <option value="Io">├── Io</option>
-                            <option value="Europa">├── Europa</option>
-                            <option value="Ganymede">├── Ganymede</option>
-                            <option value="Callisto">└── Callisto</option>
-                        </optgroup>
-                        <optgroup label="Saturn System">
-                            <option value="Saturn">Saturn</option>
-                            <option value="Mimas">├── Mimas</option>
-                            <option value="Enceladus">├── Enceladus</option>
-                            <option value="Tethys">├── Tethys</option>
-                            <option value="Dione">├── Dione</option>
-                            <option value="Rhea">├── Rhea</option>
-                            <option value="Titan">├── Titan</option>
-                            <option value="Iapetus">└── Iapetus</option>
-                        </optgroup>
-                        <optgroup label="Uranus System">
-                            <option value="Uranus">Uranus</option>
-                            <option value="Miranda">├── Miranda</option>
-                            <option value="Ariel">├── Ariel</option>
-                            <option value="Umbriel">├── Umbriel</option>
-                            <option value="Titania">├── Titania</option>
-                            <option value="Oberon">└── Oberon</option>
-                        </optgroup>
-                        <optgroup label="Neptune System">
-                            <option value="Neptune">Neptune</option>
-                            <option value="Triton">├── Triton</option>
-                            <option value="Proteus">└── Proteus</option>
-                        </optgroup>
-                    </select>
-                </div>
+            <div>
+                <label class="block text-xs text-slate-300 mb-1">Focus Target</label>
+                <select id="select-focus" class="w-full bg-slate-900/80 border border-white/20 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400">
+                    <option value="Sun">Sun (Center)</option>
+                    <option value="Mercury">Mercury</option>
+                    <option value="Venus">Venus</option>
+                    <optgroup label="Earth System">
+                        <option value="Earth">Earth</option>
+                        <option value="Moon">├── Moon</option>
+                    </optgroup>
+                    <optgroup label="Mars System">
+                        <option value="Mars">Mars</option>
+                        <option value="Phobos">├── Phobos</option>
+                        <option value="Deimos">└── Deimos</option>
+                    </optgroup>
+                    <optgroup label="Asteroid Belts">
+                        <option value="MainBelt">Main Asteroid Belt</option>
+                    </optgroup>
+                    <optgroup label="Dwarf Planets (Inner)">
+                        <option value="Ceres">Ceres</option>
+                    </optgroup>
+                    <optgroup label="Jupiter System">
+                        <option value="Jupiter">Jupiter</option>
+                        <option value="Io">├── Io</option>
+                        <option value="Europa">├── Europa</option>
+                        <option value="Ganymede">├── Ganymede</option>
+                        <option value="Callisto">└── Callisto</option>
+                    </optgroup>
+                    <optgroup label="Saturn System">
+                        <option value="Saturn">Saturn</option>
+                        <option value="Mimas">├── Mimas</option>
+                        <option value="Enceladus">├── Enceladus</option>
+                        <option value="Tethys">├── Tethys</option>
+                        <option value="Dione">├── Dione</option>
+                        <option value="Rhea">├── Rhea</option>
+                        <option value="Titan">├── Titan</option>
+                        <option value="Iapetus">└── Iapetus</option>
+                    </optgroup>
+                    <optgroup label="Uranus System">
+                        <option value="Uranus">Uranus</option>
+                        <option value="Miranda">├── Miranda</option>
+                        <option value="Ariel">├── Ariel</option>
+                        <option value="Umbriel">├── Umbriel</option>
+                        <option value="Titania">├── Titania</option>
+                        <option value="Oberon">└── Oberon</option>
+                    </optgroup>
+                    <optgroup label="Neptune System">
+                        <option value="Neptune">Neptune</option>
+                        <option value="Triton">├── Triton</option>
+                        <option value="Proteus">└── Proteus</option>
+                    </optgroup>
+                    <optgroup label="Outer Belts">
+                        <option value="KuiperBelt">Kuiper Belt</option>
+                    </optgroup>
+                    <optgroup label="Dwarf Planets (Trans-Neptunian)">
+                        <option value="Pluto">Pluto</option>
+                        <option value="Charon">├── Charon</option>
+                        <option value="Haumea">Haumea</option>
+                        <option value="Makemake">Makemake</option>
+                        <option value="Eris">Eris</option>
+                    </optgroup>
+                </select>
+            </div>
 
                 <!-- Simulation Speed Control -->
                 <div>
@@ -200,6 +217,36 @@
                     distance: "99.86% of System",
                     period: "~25 Days",
                     desc: "The central star of our Solar System. Powered by nuclear fusion in its core, it generates turbulent solar wind, yellow-hot plasma, dark magnetic sunspots, and intense solar radiation."
+                }
+            },
+            MainBelt: {
+                name: "Main Asteroid Belt",
+                type: "Circumstellar Disc",
+                radius: 0.1,
+                distance: 68,
+                speed: 0.0005,
+                rotationSpeed: 0,
+                info: {
+                    radius: "Inner: 2.2 AU / Outer: 3.2 AU",
+                    speed: "~17.9 km/s avg",
+                    distance: "2.2 – 3.2 AU",
+                    period: "3 – 6 Years",
+                    desc: "A torus-shaped region located between the orbits of Mars and Jupiter. It is occupied by millions of rocky comets, asteroids, and planetesimals leftover from early solar system formation."
+                }
+            },
+            KuiperBelt: {
+                name: "Kuiper Belt",
+                type: "Trans-Neptunian Disc",
+                radius: 0.1,
+                distance: 215,
+                speed: 0.0002,
+                rotationSpeed: 0,
+                info: {
+                    radius: "Inner: 30 AU / Outer: 50 AU",
+                    speed: "~4.5 km/s avg",
+                    distance: "30 – 50 AU",
+                    period: "200 – 300+ Years",
+                    desc: "A vast ring of icy bodies beyond Neptune's orbit. Home to dwarf planets like Pluto, Haumea, and Makemake, as well as thousands of short-period comets."
                 }
             },
             Mercury: {
@@ -277,6 +324,23 @@
                     distance: "1.52 AU",
                     period: "687 Days",
                     desc: "The 'Red Planet' gets its color from iron oxide rust on its surface. It features ancient volcanoes and canyon systems."
+                }
+            },
+            Ceres: {
+                name: "Ceres",
+                type: "Dwarf Planet (Asteroid Belt)",
+                radius: 0.6,
+                distance: 72,
+                speed: 0.011,
+                rotationSpeed: 0.02,
+                color: 0x8c887b,
+                tilt: 0.07,
+                info: {
+                    radius: "473 km",
+                    speed: "17.9 km/s",
+                    distance: "2.77 AU",
+                    period: "4.60 Years",
+                    desc: "The largest object in the main asteroid belt between Mars and Jupiter. Ceres contains significant amounts of water ice under its cratered rocky surface."
                 }
             },
             Jupiter: {
@@ -375,6 +439,77 @@
                     distance: "30.05 AU",
                     period: "164.8 Years",
                     desc: "Dark, cold, and whipped by supersonic winds. Neptune is the most distant major planet in our solar system."
+                }
+            },
+            Pluto: {
+                name: "Pluto",
+                type: "Dwarf Planet (Kuiper Belt)",
+                radius: 0.8,
+                distance: 198,
+                speed: 0.0024,
+                rotationSpeed: -0.005,
+                color: 0xcdb198,
+                tilt: 2.05,
+                moons: {
+                    Charon: { name: "Charon", radius: 0.4, distance: 3.0, speed: 0.05, color: 0x998877, info: { radius: "606 km", speed: "0.21 km/s", distance: "19,591 km", period: "6.38 Days", desc: "Pluto's largest moon. Because Charon is nearly half the size of Pluto, they form a mutually tidally locked binary system." } }
+                },
+                info: {
+                    radius: "1,188 km",
+                    speed: "4.74 km/s",
+                    distance: "39.48 AU",
+                    period: "248 Years",
+                    desc: "A icy world featuring nitrogen ice glaciers, mountains of water ice, and a prominent heart-shaped glacier named Tombaugh Regio."
+                }
+            },
+            Haumea: {
+                name: "Haumea",
+                type: "Dwarf Planet (Kuiper Belt)",
+                radius: 0.7,
+                distance: 220,
+                speed: 0.002,
+                rotationSpeed: 0.08,
+                color: 0xc4cace,
+                tilt: 0.49,
+                info: {
+                    radius: "798 km",
+                    speed: "4.48 km/s",
+                    distance: "43.13 AU",
+                    period: "283 Years",
+                    desc: "Known for its highly elongated ellipsoid shape due to its remarkably rapid 4-hour rotation speed—one of the fastest in the solar system."
+                }
+            },
+            Makemake: {
+                name: "Makemake",
+                type: "Dwarf Planet (Kuiper Belt)",
+                radius: 0.75,
+                distance: 242,
+                speed: 0.0017,
+                rotationSpeed: 0.015,
+                color: 0xc27c59,
+                tilt: 0.50,
+                info: {
+                    radius: "715 km",
+                    speed: "4.41 km/s",
+                    distance: "45.43 AU",
+                    period: "306 Years",
+                    desc: "The second-brightest Kuiper belt object visible from Earth after Pluto. Its surface is covered with frozen methane, ethane, and nitrogen."
+                }
+            },
+            Eris: {
+                name: "Eris",
+                type: "Dwarf Planet (Scattered Disc)",
+                radius: 0.82,
+                distance: 270,
+                speed: 0.0013,
+                rotationSpeed: 0.01,
+                color: 0xe5e9ec,
+                tilt: 0.77,
+                info: {
+                    radius: "1,163 km",
+                    speed: "3.43 km/s",
+                    distance: "67.78 AU",
+                    period: "557 Years",
+                    desc: "One of the most massive dwarf planets in our solar system. The discovery of Eris in 2005 led directly to the IAU reclassification of Pluto as a dwarf planet."
                 }
             }
         };
@@ -766,6 +901,59 @@
         }
         createStarfield();
 
+        // --- 5.1 ASTEROID BELTS CREATION ---
+        function createAsteroidBelt(innerRadius, outerRadius, particleCount, pointSize, colorHex) {
+            const beltGroup = new THREE.Group();
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            const baseColor = new THREE.Color(colorHex);
+
+            for (let i = 0; i < particleCount; i++) {
+                const r = innerRadius + Math.random() * (outerRadius - innerRadius);
+                const theta = Math.random() * Math.PI * 2;
+                // Add vertical dispersion
+                const height = (Math.random() - 0.5) * (outerRadius - innerRadius) * 0.12;
+
+                positions[i * 3] = r * Math.cos(theta);
+                positions[i * 3 + 1] = height;
+                positions[i * 3 + 2] = r * Math.sin(theta);
+
+                // Slight color variation per particle
+                const variation = (Math.random() - 0.5) * 0.2;
+                const c = baseColor.clone().addScalar(variation);
+
+                colors[i * 3] = c.r;
+                colors[i * 3 + 1] = c.g;
+                colors[i * 3 + 2] = c.b;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: pointSize,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.75
+            });
+
+            const points = new THREE.Points(geometry, material);
+            beltGroup.add(points);
+            scene.add(beltGroup);
+
+            return beltGroup;
+        }
+
+        // Main Asteroid Belt (Between Mars at 58 and Jupiter at 85)
+        const mainAsteroidBelt = createAsteroidBelt(64, 76, 3500, 1.2, 0x998877);
+        celestialObjects['MainBelt'] = { mesh: mainAsteroidBelt, pivot: mainAsteroidBelt, data: PLANET_DATA.MainBelt, angle: 0 };
+
+        // Kuiper Belt (Beyond Neptune at 172)
+        const kuiperBelt = createAsteroidBelt(185, 250, 6000, 1.0, 0x88aacc);
+        celestialObjects['KuiperBelt'] = { mesh: kuiperBelt, pivot: kuiperBelt, data: PLANET_DATA.KuiperBelt, angle: 0 };
+
         // --- 6. CELESTIAL BODY CREATION ---
         const sphereGeo = new THREE.SphereGeometry(1, 64, 64);
 
@@ -1056,9 +1244,13 @@
                 // Rotate Sun
                 celestialObjects['Sun'].mesh.rotation.y += celestialObjects['Sun'].data.rotationSpeed * simSpeed;
 
+                // Rotate Asteroid Belts
+                if (mainAsteroidBelt) mainAsteroidBelt.rotation.y += 0.0003 * simSpeed;
+                if (kuiperBelt) kuiperBelt.rotation.y += 0.0001 * simSpeed;
+
                 // Animate Planets & Moons
                 Object.keys(celestialObjects).forEach((key) => {
-                    if (key === 'Sun' || key === 'EarthClouds') return;
+                    if (key === 'Sun' || key === 'EarthClouds' || key === 'MainBelt' || key === 'KuiperBelt') return;
 
                     const obj = celestialObjects[key];
                     
@@ -1084,6 +1276,8 @@
             const targetObj = celestialObjects[focusedObjectName];
             if (targetObj) {
                 if (focusedObjectName === 'Sun') {
+                    targetWorldPos.set(0, 0, 0);
+                } else if (focusedObjectName === 'MainBelt' || focusedObjectName === 'KuiperBelt') {
                     targetWorldPos.set(0, 0, 0);
                 } else {
                     targetObj.mesh.getWorldPosition(targetWorldPos);
