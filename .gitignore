@@ -3,3 +3,7 @@ __pycache__/
 *.py[cod]
 db.sqlite3
 django-server*.log
+.env
+.env.*
+!.env.example
+.neon
